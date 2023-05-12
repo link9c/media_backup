@@ -243,7 +243,7 @@ export component ListViewPage inherits Page {
                     }
                     name-text := Text {
                         font-size: 14px;
-                        color: list-item.selected ? black: red;
+                        color: list-item.selected ? red: black;
                         text: ListViewData.select-item[idx].name;
                         width: 200px;
 
@@ -252,7 +252,7 @@ export component ListViewPage inherits Page {
                     size-text := Text {
                         
                         font-size: 14px;
-                        color: list-item.selected ? black: red;
+                        color: list-item.selected ? red: black;
                         text: ListViewData.select-item[idx].size;
                         width: 50px;
 
@@ -261,7 +261,7 @@ export component ListViewPage inherits Page {
                     create-time-text := Text {
                         
                         font-size: 14px;
-                        color: list-item.selected ? black: red;
+                        color: list-item.selected ? red: black;
                         text: ListViewData.select-item[idx].create_time;
                         width: 150px;
 
@@ -270,7 +270,7 @@ export component ListViewPage inherits Page {
                     modified-time-text := Text {
                        
                         font-size: 14px;
-                        color: list-item.selected ? black: red;
+                        color: list-item.selected ? red: black;
                         text: ListViewData.select-item[idx].modified_time;
                         width: 170px;
                     }
