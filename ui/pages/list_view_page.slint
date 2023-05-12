@@ -1,0 +1,115 @@
+// Copyright © SixtyFPS GmbH <info@slint-ui.com>
+// SPDX-License-Identifier: GPL-3.0-only OR LicenseRef-Slint-commercial
+
+import { HorizontalBox, VerticalBox, ListView, StandardListView, GroupBox, CheckBox , Button} from "std-widgets.slint";
+import { ListViewData, FileAction } from "../global_struct.slint";
+import { Page } from "page.slint";
+
+
+export component ListViewPage inherits Page {
+
+
+    vertical-stretch: 1;
+
+    VerticalLayout {
+
+    VerticalLayout {
+        Button { 
+            vertical-stretch: 0;
+            text: "选择文件夹"; 
+            clicked => { FileAction.get-file-path() }
+        }
+
+        Text { text: "路径:" + FileAction.path; }
+    }
+   
+   
+    
+    HorizontalLayout { 
+        in-out property <int> selected-idx: 0;
+        GroupBox {
+            preferred-width: 350px;
+            ListView {
+                vertical-stretch: 0;
+                for item[idx] in ListViewData.select-item : HorizontalBox {
+                    in property <bool> ck: ListViewData.select-item[idx].checked ;
+                  
+                    // Image {
+                    //     width: 24px;
+                    //     source: @image-url("../images/plus.svg");
+                    // }
+                    name-text := Text {
+                        in-out property <bool> selected: true;
+                        font-size: 15px;
+                        color: selected ? black: red;
+                        text: ListViewData.select-item[idx].name;
+             
+                        
+                       
+                    }
+                    Rectangle {
+                        border-color: #381eac;
+                        border-radius: 3px;
+                        border-width: 1px;
+                        background: ListViewData.select-item[idx].checked ? #14c8e7: white;
+                        width: 20px;
+                        TouchArea {
+                            clicked => { 
+                                ListViewData.select-item[idx].checked = !ck; 
+                                selected-idx = idx;
+                                name-text.selected =! name-text.selected;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        GroupBox {
+            preferred-width: 100px;
+          
+            VerticalLayout {
+                padding: 5px;
+                Image {
+                    vertical-stretch: 0;
+                    source:@image-url("../images/cat.jpg");
+                    width: 180px;
+                    height: 180px;
+                }
+                VerticalLayout {
+                    padding: 10px;
+                    Text {
+                        wrap: word-wrap;
+                        font-size: 16px;
+                        vertical-stretch: 1;
+                        text: ListViewData.select-item[selected-idx].name;
+                    }
+                    Text {
+                        font-size: 16px;
+                        vertical-stretch: 1;
+                        text: ListViewData.select-item[selected-idx].size;
+                    }
+                    Text {
+                        font-size: 13px;
+                        vertical-stretch: 1;
+                        text: "创建时间:"+ListViewData.select-item[selected-idx].create_time;
+                    }
+                    Text {
+                        font-size: 13px;
+                        vertical-stretch: 2;
+                        text: "修改时间:"+ListViewData.select-item[selected-idx].modified_time;
+                    }
+
+                }
+           
+            }
+           
+            
+    }
+        
+}
+}
+
+       
+    
+    
+}

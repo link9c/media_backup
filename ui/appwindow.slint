@@ -1,0 +1,35 @@
+import { CheckBox, StandardListView, StyleMetrics } from "std-widgets.slint";
+import { ListViewPage } from "./pages/pages.slint";
+
+import { ListViewData, ListViewItem, FileAction } from "./global_struct.slint";
+
+export {ListViewData, ListViewItem, FileAction}
+
+import "./fonts/NotoSans-Regular.ttf"; 
+import "./fonts/NotoSans-Bold.ttf";
+
+
+// Copyright © SixtyFPS GmbH <info@slint-ui.com>
+// SPDX-License-Identifier: GPL-3.0-only OR LicenseRef-Slint-commercial
+
+
+
+
+export component App inherits Window {
+    preferred-width: 700px;
+    preferred-height: 500px;
+    title: "便宜备份";
+    icon: @image-url("images/dog.jpg");
+  
+
+
+    VerticalLayout {
+   
+
+        ListViewPage {
+            title:"";
+        }
+
+       
+    }
+}
