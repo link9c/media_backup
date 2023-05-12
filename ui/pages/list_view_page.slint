@@ -1,7 +1,7 @@
 // Copyright © SixtyFPS GmbH <info@slint-ui.com>
 // SPDX-License-Identifier: GPL-3.0-only OR LicenseRef-Slint-commercial
 
-import { HorizontalBox, VerticalBox, ListView, StandardListView, GroupBox, CheckBox , Button} from "std-widgets.slint";
+import { HorizontalBox, VerticalBox, ListView, StandardListView, GroupBox, CheckBox , Button, GridBox} from "std-widgets.slint";
 import { ListViewData, FileAction } from "../global_struct.slint";
 import { Page } from "page.slint";
 
@@ -12,100 +12,286 @@ export component ListViewPage inherits Page {
     vertical-stretch: 1;
 
     VerticalLayout {
-
+    spacing: 5px;
     VerticalLayout {
-        Button { 
-            vertical-stretch: 0;
-            text: "选择文件夹"; 
-            clicked => { FileAction.get-file-path() }
+    width: 490px;
+    height: 75px;
+    spacing: 5px;
+        HorizontalLayout {
+                spacing: 3px;
+                Button { 
+                    text: "select file"; 
+                    width: 100px;
+                    height: 25px;
+                    clicked => { FileAction.get-file-path(0) }
+                }
+            
+            
+               VerticalLayout {
+                 Text { 
+                    text: FileAction.origin-path; 
+                    font-size: 14px;
+                    vertical-alignment: center;
+
+                }
+                
+               }
+  
         }
 
-        Text { text: "路径:" + FileAction.path; }
+        HorizontalLayout {
+        //height: 20px;
+        Text { 
+                        text: "copy to ↓"; 
+                        font-size: 14px;
+                        width: 100px;
+                        vertical-alignment: center;
+                        horizontal-alignment: center;
+
+                    }
+          
+        
+        }
+
+
+
+        HorizontalLayout {
+                spacing: 3px;
+                Button { 
+                    text: "select file"; 
+                    width: 100px;
+                    height: 25px;
+                    clicked => { FileAction.get-file-path(1) }
+                }
+            
+            
+               VerticalLayout {
+                 Text { 
+                    text: FileAction.target-path; 
+                    font-size: 14px;
+                    vertical-alignment: center;
+                  
+                }
+                
+               }
+              
+                
+               
+          
+            
+        }
     }
+    
+    HorizontalLayout{
+
+
+   
+    
+    input-text := Rectangle {
+        height:30px;
+        border-color: #dccfdb;
+
+        border-radius: 5px;
+        border-width: 1px;
+            TextInput {
+            
+                text: "";
+                vertical-alignment: center;
+                }
+        }
+
+        Button {
+        
+            text:"search";
+            clicked => {
+                ListViewData.search-by-name("a")
+
+            }
+        }
+    
+    }
+    
    
    
     
     HorizontalLayout { 
         in-out property <int> selected-idx: 0;
-        GroupBox {
+
+        VerticalLayout {
+            HorizontalBox{
+                Image {
+                         width: 18px;
+                         source: @image-url("../images/plus.svg");
+                     }
+                label-name := Text {
+                    in-out property <bool> asent:true ;
+                    in-out property <bool> sorted:false ;
+                    height: 20px;
+                    text: sorted ? asent ? "name ↓": "name ↑": "name";
+                    font-size: 15px;
+                    width: 200px;
+                    TouchArea {
+                        clicked => {
+                            label-name.sorted = true;
+                            label-name.asent = !label-name.asent;
+
+                            label-size.sorted = false;
+                            label-create.sorted = false;
+                            label-modified.sorted = false;
+
+                            ListViewData.sort-by(0, asent);
+                            }
+                        }
+                    }
+
+
+                label-size := Text {
+                    in-out property <bool> asent:true ;
+                    in-out property <bool> sorted:false ;
+                    height: 20px;
+                    text: sorted ? asent ? "size ↓": "size ↑": "size";
+                    font-size: 15px;
+                    width: 50px;
+                    TouchArea {
+                        clicked => {
+                            label-size.sorted = true;
+                            label-size.asent = !label-size.asent;
+
+                            label-name.sorted = false;
+                            label-create.sorted = false;
+                            label-modified.sorted = false;
+
+                            ListViewData.sort-by(1, asent);
+                            }
+                        }
+                    
+                    }
+
+                label-create := Text {
+                    in-out property <bool> asent:true ;
+                    in-out property <bool> sorted:false ;
+                    height: 20px;
+                    text: sorted ? asent ? "create ↓": "create ↑": "create";
+                    font-size: 15px;
+                    width: 150px;
+                    TouchArea {
+                        clicked => {
+                            label-create.sorted = true;
+                            label-create.asent = !label-create.asent;
+
+                            label-name.sorted = false;
+                            label-size.sorted = false;
+                            label-modified.sorted = false;
+
+                            ListViewData.sort-by(2, asent);
+                            }
+                        }
+                    }
+
+                label-modified := Text {
+                    in-out property <bool> asent:true ;
+                    in-out property <bool> sorted:false ;
+                    height: 20px;
+                    text: sorted ? asent ? "modified ↓": "modified ↑": "modified";
+                    font-size: 15px;
+                    width: 150px;
+                    TouchArea {
+                        clicked => {
+                            label-modified.sorted = true;
+                            label-modified.asent = !label-modified.asent;
+
+                            label-name.sorted = false;
+                            label-size.sorted = false;
+                            label-create.sorted = false;
+
+                            ListViewData.sort-by(3, asent);
+                            }
+                        }
+                    }
+
+              
+                Text {
+                    height: 20px;
+                    text: "getall";
+                    font-size: 15px;
+                     width: 60px;
+                     TouchArea {
+                        clicked => {
+                            ListViewData.select-all()
+                            }
+                        }
+                    }
+
+              
+                
+                }
+         
+        
+        
+        GridLayout  {
             preferred-width: 350px;
-            ListView {
+           
+           ListView {
                 vertical-stretch: 0;
-                for item[idx] in ListViewData.select-item : HorizontalBox {
+                
+                for item[idx] in ListViewData.select-item : list-item := HorizontalBox {
                     in property <bool> ck: ListViewData.select-item[idx].checked ;
-                  
-                    // Image {
-                    //     width: 24px;
-                    //     source: @image-url("../images/plus.svg");
-                    // }
+                    in-out property <bool> selected:false ;
+                    Image {
+                        width: 18px;
+                        source: @image-url("../images/plus.svg");
+                    }
                     name-text := Text {
-                        in-out property <bool> selected: true;
-                        font-size: 15px;
-                        color: selected ? black: red;
+                        font-size: 14px;
+                        color: list-item.selected ? black: red;
                         text: ListViewData.select-item[idx].name;
-             
+                        width: 200px;
+
+                    }
+
+                    size-text := Text {
                         
+                        font-size: 14px;
+                        color: list-item.selected ? black: red;
+                        text: ListViewData.select-item[idx].size;
+                        width: 50px;
+
+                    }
+
+                    create-time-text := Text {
+                        
+                        font-size: 14px;
+                        color: list-item.selected ? black: red;
+                        text: ListViewData.select-item[idx].create_time;
+                        width: 150px;
+
+                    }
+
+                    modified-time-text := Text {
                        
+                        font-size: 14px;
+                        color: list-item.selected ? black: red;
+                        text: ListViewData.select-item[idx].modified_time;
+                        width: 170px;
                     }
                     Rectangle {
                         border-color: #381eac;
                         border-radius: 3px;
                         border-width: 1px;
                         background: ListViewData.select-item[idx].checked ? #14c8e7: white;
-                        width: 20px;
+                        width: 18px;
                         TouchArea {
                             clicked => { 
                                 ListViewData.select-item[idx].checked = !ck; 
                                 selected-idx = idx;
-                                name-text.selected =! name-text.selected;
+                                list-item.selected = !list-item.selected;
                             }
                         }
                     }
                 }
             }
-        }
-        GroupBox {
-            preferred-width: 100px;
-          
-            VerticalLayout {
-                padding: 5px;
-                Image {
-                    vertical-stretch: 0;
-                    source:@image-url("../images/cat.jpg");
-                    width: 180px;
-                    height: 180px;
-                }
-                VerticalLayout {
-                    padding: 10px;
-                    Text {
-                        wrap: word-wrap;
-                        font-size: 16px;
-                        vertical-stretch: 1;
-                        text: ListViewData.select-item[selected-idx].name;
-                    }
-                    Text {
-                        font-size: 16px;
-                        vertical-stretch: 1;
-                        text: ListViewData.select-item[selected-idx].size;
-                    }
-                    Text {
-                        font-size: 13px;
-                        vertical-stretch: 1;
-                        text: "创建时间:"+ListViewData.select-item[selected-idx].create_time;
-                    }
-                    Text {
-                        font-size: 13px;
-                        vertical-stretch: 2;
-                        text: "修改时间:"+ListViewData.select-item[selected-idx].modified_time;
-                    }
-
-                }
-           
-            }
-           
-            
-    }
-        
+        }}
+       
 }
 }
 

@@ -12,12 +12,32 @@ export struct ListViewItem{
 
 
 export global ListViewData  {
-    in property<[ListViewItem]> select-item;
+    callback sort-by(int, bool);
+    callback select-all();
+    callback search-by-name(string);
+    in property <bool> has-select-all:false;
+    in property<[ListViewItem]> select-item:[
+    {
+    checked:false,name:"111iohbb8908hnnmm.jpg",
+    create_time:"2023-01-01 08:00:00",
+    size:1667,
+    modified_time:"2023-01-02 08:00:00"
+    },
+    
+    {
+    checked:false,name:"FFFFSwewe423424.jpg",
+    create_time:"2023-01-01 09:00:00",
+    size:1221667,
+    modified_time:"2023-01-03 08:10:03"
+    }
+    
+    ];
 }
 
 
 export global FileAction  {
     callback get-file-list();
-    callback get-file-path();
-    in property <string> path;
+    callback get-file-path(int);
+    in property <string> origin-path;
+    in property <string> target-path;
 }
