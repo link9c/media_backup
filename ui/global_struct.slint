@@ -1,0 +1,23 @@
+// Copyright © SixtyFPS GmbH <info@slint-ui.com>
+// SPDX-License-Identifier: GPL-3.0-only OR LicenseRef-Slint-commercial
+
+export struct ListViewItem{
+    checked: bool,
+    name: string,
+    size: int,
+    modified_time: string,
+    create_time: string
+}
+
+
+
+export global ListViewData  {
+    in property<[ListViewItem]> select-item;
+}
+
+
+export global FileAction  {
+    callback get-file-list();
+    callback get-file-path();
+    in property <string> path;
+}
