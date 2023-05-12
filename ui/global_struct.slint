@@ -1,0 +1,43 @@
+// Copyright © SixtyFPS GmbH <info@slint-ui.com>
+// SPDX-License-Identifier: GPL-3.0-only OR LicenseRef-Slint-commercial
+
+export struct ListViewItem{
+    checked: bool,
+    name: string,
+    size: int,
+    modified_time: string,
+    create_time: string
+}
+
+
+
+export global ListViewData  {
+    callback sort-by(int, bool);
+    callback select-all();
+    callback search-by-name(string);
+    in property <bool> has-select-all:false;
+    in property<[ListViewItem]> select-item:[
+    {
+    checked:false,name:"111iohbb8908hnnmm.jpg",
+    create_time:"2023-01-01 08:00:00",
+    size:1667,
+    modified_time:"2023-01-02 08:00:00"
+    },
+    
+    {
+    checked:false,name:"FFFFSwewe423424.jpg",
+    create_time:"2023-01-01 09:00:00",
+    size:1221667,
+    modified_time:"2023-01-03 08:10:03"
+    }
+    
+    ];
+}
+
+
+export global FileAction  {
+    callback get-file-list();
+    callback get-file-path(int);
+    in property <string> origin-path;
+    in property <string> target-path;
+}
