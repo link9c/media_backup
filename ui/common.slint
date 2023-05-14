@@ -16,6 +16,7 @@ export global DemoPalette  {
 
     out property <color> game-status-leave-color: #ff0055;
     out property <color> game-status-online-color: #6fff62;
+
     out property <color> game-status-room-color: #efff62;
 
 
@@ -276,17 +277,18 @@ export component CheckBox inherits Rectangle {
 export component PushButton inherits Rectangle {
     callback clicked;
     in property <string> text <=> label.text;
-    in-out property <image> icon <=> img.source;
+    in property <bool> enabled: true;
+    // in-out property <image> icon <=> img.source;
     in property <bool> primary: true;
     out property <bool> pressed: touch-area.pressed;
 
     out property <ButtonColors> colors: root.primary ? DemoPalette.primary-push-button-colors : DemoPalette.secondary-push-button-colors;
 
-    border-radius: 13.5px;
+    border-radius: 10.5px;
 
     background: root.pressed ? root.colors.pressed : (touch-area.has-hover ? root.colors.hovered : root.colors.base);
 
-    height: 27px; // line-height in the design
+    height: 25px; // line-height in the design
     horizontal-stretch: 1;
 
     HorizontalLayout {
@@ -295,21 +297,22 @@ export component PushButton inherits Rectangle {
         padding-left: parent.border-radius;
         padding-right: parent.border-radius;
 
-        img := Image {
-            horizontal-stretch: 0;
-            colorize: DemoPalette.push-button-text-color;
-            image-fit: contain;
-            width: 17px;
-        }
+        // img := Image {
+        //     horizontal-stretch: 0;
+        //     colorize: DemoPalette.push-button-text-color;
+        //     image-fit: contain;
+        //     width: 17px;
+        // }
 
         label := Text {
             font-weight: 900;
             font-size: DemoPalette.base-font-size * 0.975;
-            color: DemoPalette.push-button-text-color;
+            color: enabled ? DemoPalette.push-button-text-color:DemoPalette.inactive-page-icon-color;
             horizontal-alignment: center;
             vertical-alignment: center;
         }
     }
 
-    touch-area := TouchArea { clicked => { root.clicked() } }
+        
+    touch-area := TouchArea { clicked => { if (root.enabled) {root.clicked()  } }}
 }

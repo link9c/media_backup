@@ -1,9 +1,10 @@
 import { CheckBox, StandardListView, StyleMetrics } from "std-widgets.slint";
 import { ListViewPage } from "./pages/pages.slint";
 
-import { ListViewData, ListViewItem, FileAction } from "./global_struct.slint";
+import { ListViewData, ListViewItem, FileAction, ListItemProgress } from "./global_struct.slint";
 
-export {ListViewData, ListViewItem, FileAction}
+export { ListViewData, ListViewItem, FileAction, ListItemProgress}
+
 
 import "./fonts/NotoSans-Regular.ttf"; 
 import "./fonts/NotoSans-Bold.ttf";
@@ -16,8 +17,10 @@ import "./fonts/NotoSans-Bold.ttf";
 
 
 export component App inherits Window {
-    preferred-width: 700px;
-    preferred-height: 500px;
+    preferred-width: 1700px;
+    min-width: 900px;
+    preferred-height: 600px;
+    
     title: "便宜备份";
     icon: @image-url("images/dog.jpg");
   

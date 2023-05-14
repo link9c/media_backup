@@ -5,82 +5,170 @@ import { HorizontalBox, VerticalBox, ListView, StandardListView, GroupBox, Check
 import { ListViewData, FileAction } from "../global_struct.slint";
 import { Page } from "page.slint";
 
+import { PushButton } from "../common.slint";
+
 
 export component ListViewPage inherits Page {
 
+   
 
     vertical-stretch: 1;
 
     VerticalLayout {
     spacing: 5px;
-    VerticalLayout {
-    width: 490px;
-    height: 75px;
-    spacing: 5px;
         HorizontalLayout {
-                spacing: 3px;
-                Button { 
-                    text: "select file"; 
-                    width: 100px;
-                    height: 25px;
-                    clicked => { FileAction.get-file-path(0) }
-                }
+            VerticalLayout {
+                width: 68%;
+                height: 85px;
+                spacing: 5px;
+                    HorizontalLayout {
+                            spacing: 3px;
+                            Button { 
+                                text: "源文件夹"; 
+                                
+                                width: 100px;
+                                height: 30px;
+                                clicked => { FileAction.get-file-path(0) }
+                            }
+                        
+                        
+                        VerticalLayout {
+                            Text { 
+                                text: FileAction.origin-path; 
+                                font-size: 14px;
+                                vertical-alignment: center;
+    
+                            }
+                            
+                        }
             
-            
-               VerticalLayout {
-                 Text { 
-                    text: FileAction.origin-path; 
-                    font-size: 14px;
-                    vertical-alignment: center;
-
-                }
-                
-               }
-  
-        }
-
-        HorizontalLayout {
-        //height: 20px;
-        Text { 
-                        text: "copy to ↓"; 
-                        font-size: 14px;
-                        width: 100px;
-                        vertical-alignment: center;
-                        horizontal-alignment: center;
-
                     }
-          
+    
+                    HorizontalLayout {
+                    //height: 20px;
+                    Text { 
+                                    text: "copy to ↓"; 
+                                    font-size: 14px;
+                                    width: 100px;
+                                    vertical-alignment: center;
+                                    horizontal-alignment: center;
+    
+                                }
+                    
+                    
+                    }
+    
+    
+    
+                    HorizontalLayout {
+                            spacing: 3px;
+                            Button { 
+                                text: "目标文件夹"; 
+                                width: 100px;
+                                height: 30px;
+                                clicked => { FileAction.get-file-path(1) }
+                            }
+                        
+                        
+                        VerticalLayout {
+                            Text { 
+                                text: FileAction.target-path; 
+                                font-size: 14px;
+                                vertical-alignment: center;
+                            
+                            }
+                            
+                        }
+                        
+                            
+                        
+                    
+                        
+                    }
+                }
         
-        }
+                progress := VerticalLayout {
+                    in property <int> moved : ListViewData.data-size[0].moved;
+                    in property <int> total : ListViewData.data-size[0].total;
+                    in property <int> status : ListViewData.data-size[0].status;
+                    in-out property <bool> extend-btn : false ;
+                    in-out property <bool> stop-continue: false;
+                    HorizontalLayout {
+                        height: 40%;
+                       alignment: end;
+                        start-btn := PushButton {
+                            width: 1%;
+                            text:"开始备份";
+                            clicked => {
+                                // 显示扩展按钮
+                                progress.extend-btn = true;
 
+                                // 执行copy操作
+                                FileAction.copy-file(FileAction.origin-path, FileAction.target-path);
 
+                            }
+                            enabled: progress.total != 0 ? (progress.moved / progress.total > 0.99 || progress.moved / progress.total == 0) ? true: false: true;
 
-        HorizontalLayout {
-                spacing: 3px;
-                Button { 
-                    text: "select file"; 
-                    width: 100px;
-                    height: 25px;
-                    clicked => { FileAction.get-file-path(1) }
+                        }
+                        stop-btn := PushButton {
+                            width: progress.extend-btn ? 55px: 0px;
+                            text:"暂停";
+                            enabled: !progress.stop-continue ;
+                            clicked => {
+                                progress.stop-continue = !progress.stop-continue;
+                                FileAction.update-progress-status(1);
+                            }
+                        }
+                        
+                        continue-btn := PushButton {
+                            width: progress.extend-btn ? 55px: 0px;
+                            text:"继续";
+                            enabled: progress.stop-continue ;
+                            clicked => {
+                                progress.stop-continue = !progress.stop-continue;
+                                FileAction.update-progress-status(2);
+                            }
+                        }
+                        exit-btn := PushButton {
+                            width: progress.extend-btn ? 55px: 0px;
+                            text:"取消";
+                            clicked => {
+                                progress.extend-btn = false;
+                                FileAction.update-progress-status(3);
+                            }
+                        }
+                    }
+
+                    Rectangle {
+                        
+                        Rectangle {
+                            border-color: progress.extend-btn ? red: white;
+                            border-width: 1px;
+                            width: 200px;
+                            height: 25px;
+                            Rectangle {
+                            
+                                background: #3fd9ff;
+                                width: 200px * progress.moved / progress.total;
+                                height: 25px;
+                                Text {
+                                    text:100 * progress.moved / progress.total;
+                                }
+                            }
+                        }
+                        
+                    }
                 }
-            
-            
-               VerticalLayout {
-                 Text { 
-                    text: FileAction.target-path; 
-                    font-size: 14px;
-                    vertical-alignment: center;
-                  
-                }
-                
-               }
-              
                 
                
-          
+            }
             
-        }
-    }
+
+    
+
+    // PushButton { text:"sss";clicked => {} }
+
+    
     
     HorizontalLayout{
 
@@ -119,9 +207,11 @@ export component ListViewPage inherits Page {
 
         VerticalLayout {
             HorizontalBox{
+                x:2px;
                 Image {
-                         width: 18px;
-                         source: @image-url("../images/plus.svg");
+                    
+                         width: root.width * 0.03;
+                         
                      }
                 label-name := Text {
                     in-out property <bool> asent:true ;
@@ -129,7 +219,7 @@ export component ListViewPage inherits Page {
                     height: 20px;
                     text: sorted ? asent ? "name ↓": "name ↑": "name";
                     font-size: 15px;
-                    width: 200px;
+                    width: root.width * 0.26;
                     TouchArea {
                         clicked => {
                             label-name.sorted = true;
@@ -149,9 +239,9 @@ export component ListViewPage inherits Page {
                     in-out property <bool> asent:true ;
                     in-out property <bool> sorted:false ;
                     height: 20px;
-                    text: sorted ? asent ? "size ↓": "size ↑": "size";
+                    text: sorted ? asent ? "size ↑": "size ↓": "size";
                     font-size: 15px;
-                    width: 50px;
+                    width: root.width * 0.12;
                     TouchArea {
                         clicked => {
                             label-size.sorted = true;
@@ -171,9 +261,9 @@ export component ListViewPage inherits Page {
                     in-out property <bool> asent:true ;
                     in-out property <bool> sorted:false ;
                     height: 20px;
-                    text: sorted ? asent ? "create ↓": "create ↑": "create";
+                    text: sorted ? asent ? "create ↑": "create ↓": "create";
                     font-size: 15px;
-                    width: 150px;
+                    width: root.width * 0.21;
                     TouchArea {
                         clicked => {
                             label-create.sorted = true;
@@ -192,9 +282,9 @@ export component ListViewPage inherits Page {
                     in-out property <bool> asent:true ;
                     in-out property <bool> sorted:false ;
                     height: 20px;
-                    text: sorted ? asent ? "modified ↓": "modified ↑": "modified";
+                    text: sorted ? asent ? "modified ↑": "modified ↓": "modified";
                     font-size: 15px;
-                    width: 150px;
+                    width:  root.width * 0.21;
                     TouchArea {
                         clicked => {
                             label-modified.sorted = true;
@@ -211,10 +301,10 @@ export component ListViewPage inherits Page {
 
               
                 Text {
-                    height: 20px;
+                    
                     text: "getall";
                     font-size: 15px;
-                     width: 60px;
+                     width:  root.width * 0.07;
                      TouchArea {
                         clicked => {
                             ListViewData.select-all()
@@ -229,65 +319,77 @@ export component ListViewPage inherits Page {
         
         
         GridLayout  {
-            preferred-width: 350px;
+            // preferred-width: 350px;
            
            ListView {
                 vertical-stretch: 0;
                 
                 for item[idx] in ListViewData.select-item : list-item := HorizontalBox {
                     in property <bool> ck: ListViewData.select-item[idx].checked ;
-                    in-out property <bool> selected:false ;
+                    min-height: 30px;
+                    max-height: 60px;
                     Image {
-                        width: 18px;
+                        width: root.width * 0.03;
                         source: @image-url("../images/plus.svg");
+                        
                     }
                     name-text := Text {
                         font-size: 14px;
-                        color: list-item.selected ? red: black;
+                        color: list-item.ck ? red: black;
                         text: ListViewData.select-item[idx].name;
-                        width: 200px;
+                        width: root.width * 0.26;
+                        wrap: word-wrap;
+                        vertical-alignment: center;
 
                     }
 
                     size-text := Text {
                         
                         font-size: 14px;
-                        color: list-item.selected ? red: black;
-                        text: ListViewData.select-item[idx].size;
-                        width: 50px;
+                        color: list-item.ck ? red: black;
+                        text: ListViewData.select-item[idx].size_show;
+                        width: root.width * 0.12;
+                        vertical-alignment: center;
 
                     }
 
                     create-time-text := Text {
                         
                         font-size: 14px;
-                        color: list-item.selected ? red: black;
+                        color: list-item.ck ? red: black;
                         text: ListViewData.select-item[idx].create_time;
-                        width: 150px;
-
+                        width: root.width * 0.21;
+                        vertical-alignment: center;
                     }
 
                     modified-time-text := Text {
                        
                         font-size: 14px;
-                        color: list-item.selected ? red: black;
+                        color: list-item.ck ? red: black;
                         text: ListViewData.select-item[idx].modified_time;
-                        width: 170px;
+                        width: root.width * 0.21;
+                        vertical-alignment: center;
                     }
+
                     Rectangle {
-                        border-color: #381eac;
-                        border-radius: 3px;
-                        border-width: 1px;
-                        background: ListViewData.select-item[idx].checked ? #14c8e7: white;
-                        width: 18px;
-                        TouchArea {
-                            clicked => { 
-                                ListViewData.select-item[idx].checked = !ck; 
-                                selected-idx = idx;
-                                list-item.selected = !list-item.selected;
+                        width: root.width * 0.07;
+                        Rectangle {
+                            border-color: #381eac;
+                            border-radius: 3px;
+                            border-width: 1px;
+                            background: ListViewData.select-item[idx].checked ? #14c8e7: white;
+                            width: 20px;
+                            height: 20px;
+                            TouchArea {
+                                clicked => { 
+                                    ListViewData.select-item[idx].checked = !ck; 
+                                    selected-idx = idx;
+                                 
+                                }
                             }
                         }
                     }
+                   
                 }
             }
         }}

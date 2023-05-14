@@ -6,19 +6,30 @@ export struct ListViewItem{
     name: string,
     size: int,
     modified_time: string,
-    create_time: string
+    create_time: string,
+    size_show: string
 }
 
+
+export struct ListItemProgress {
+
+    total:int,
+    moved:int,
+    status:int
+}
 
 
 export global ListViewData  {
     callback sort-by(int, bool);
     callback select-all();
+    
     callback search-by-name(string);
+    in property <float> percent;
+    in property <[ListItemProgress]> data-size;
     in property <bool> has-select-all:false;
     in property<[ListViewItem]> select-item:[
     {
-    checked:false,name:"111iohbb8908hnnmm.jpg",
+    checked:false,name:"111iohbb8908hnnmmsdadsadasasdasdasddaasdasdasdasdasdasdasdasdasdasdasdasddasdadasd.jpg",
     create_time:"2023-01-01 08:00:00",
     size:1667,
     modified_time:"2023-01-02 08:00:00"
@@ -37,7 +48,9 @@ export global ListViewData  {
 
 export global FileAction  {
     callback get-file-list();
+    callback copy-file(string, string);
     callback get-file-path(int);
+    callback update-progress-status(int);
     in property <string> origin-path;
     in property <string> target-path;
 }
