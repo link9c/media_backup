@@ -167,7 +167,9 @@ fn main() {
                 },
             );
 
-            if items.iter().count() > 0 {
+            let count = items.iter().count();
+
+            if count > 0 {
                 thread::Builder::new()
                     .spawn(move || {
                         unsafe {
@@ -176,12 +178,18 @@ fn main() {
                             PROGRESS_PTR.status = ProgressStatus::Start;
                         };
 
-                        for each in items.iter() {
+                        for (i, each) in items.iter().enumerate() {
                             // let pr_copy = pr.clone();
                             let o_path = format!("{}/{}", origin_path.to_string(), each.name);
                             let t_path = format!("{}/{}", target_path.to_string(), each.name);
+                            println!("{},{}", i, count);
+                            let state = if i == count {
+                                ProgressStatus::Finish
+                            } else {
+                                ProgressStatus::Continue
+                            };
                             if each.checked {
-                                copy_file_buffer(&o_path, &t_path);
+                                copy_file_buffer(&o_path, &t_path, state);
                             }
                         }
                     })
@@ -268,7 +276,7 @@ fn format_time(st: &std::time::SystemTime) -> String {
 fn copy_file_buffer(
     filepath: &str,
     target_filepath: &str,
-    // buff: Progress,
+    state: ProgressStatus,
 ) -> Result<(), Box<dyn std::error::Error>> {
     const BUFFER_LEN: usize = 512;
     let mut buffer = [0u8; BUFFER_LEN];
@@ -285,7 +293,7 @@ fn copy_file_buffer(
                     PROGRESS_PTR.moved = PROGRESS_PTR.moved + BUFFER_LEN as u64;
                     if read_count != BUFFER_LEN {
                         target_bw.flush()?;
-                        PROGRESS_PTR.status = ProgressStatus::Finish;
+                        PROGRESS_PTR.status = state;
                         break;
                     }
                 }
