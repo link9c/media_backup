@@ -44,11 +44,11 @@ impl Into<from_slint::ListViewItem> for FileInfo {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Copy)]
 pub struct Progress {
     pub total: u64,
     pub moved: u64,
-    pub status: ProgressStatus,
+    pub status:  ProgressStatus,
 }
 
 impl Into<from_slint::ListItemProgress> for Progress {
@@ -59,5 +59,16 @@ impl Into<from_slint::ListItemProgress> for Progress {
             status: self.status.to_num(),
             total: (self.total / 1024) as i32,
         }
+    }
+}
+
+// unsafe impl Send for Progress{
+    
+// }
+
+
+impl Default for Progress{
+    fn default() -> Self {
+        Self { total: 0, moved: 0 , status: ProgressStatus::Start  }
     }
 }

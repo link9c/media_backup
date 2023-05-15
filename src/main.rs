@@ -1,5 +1,5 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
-#![deny(unsafe_code)]
+// #![deny(unsafe_code)]
 use chrono::prelude::{DateTime, Utc};
 use rfd::FileDialog;
 use slint::ComponentHandle;
@@ -25,12 +25,18 @@ use crate::structs::{FileInfo, Progress};
 
 mod enums;
 mod structs;
+static mut PROGRESS_PTR: Progress = Progress {
+    moved: 0,
+    total: 0,
+    status: ProgressStatus::Start,
+};
 
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen(start))]
 fn main() {
-    let progress_mutex: Arc<Mutex<Progress>> = Arc::new(Mutex::new(Progress::default()));
-    
-   
+    // let progress_ptr = Progress::default();
+
+    // let progress_mutex: Arc<Mutex<Progress>> = Arc::new(Mutex::new(Progress::default()));
+
     let app = App::new().unwrap();
     // app.on_clicked(|x|{});
     let handle = app.as_weak();
@@ -41,7 +47,12 @@ fn main() {
 
     // 定义进度条
 
-    let progress_rc: Rc<VecModel<ListItemProgress>> = Rc::new(VecModel::from(vec![ListItemProgress{moved:0,total:0,status:6}]));
+    let progress_rc: Rc<VecModel<ListItemProgress>> =
+        Rc::new(VecModel::from(vec![ListItemProgress {
+            moved: 0,
+            total: 0,
+            status: 6,
+        }]));
 
     // 代开文件夹 渲染文件列表
     let list_item_copy = null_list_rc.clone();
@@ -126,7 +137,6 @@ fn main() {
         list_item_copy.set_vec(sorted_item);
     });
     // 备份文件
-    let progress_mutex_1 = progress_mutex.clone();
     let list_item_copy = null_list_rc.clone();
     let progress_rc_copy = progress_rc.clone();
     app.global::<FileAction>()
@@ -135,6 +145,8 @@ fn main() {
                 .iter()
                 .map(|x| FileInfo::from(x))
                 .collect::<Vec<FileInfo>>();
+
+            // println!("{:?}",items);
             let data_size = items
                 .iter()
                 .map(|x| {
@@ -154,52 +166,54 @@ fn main() {
                     status: 0,
                 },
             );
-            let pr = progress_mutex_1.clone();
 
-            thread::Builder::new()
-                .spawn(move || {
-                    let pr1 = pr.clone();
-                    let mut f = pr1.lock().unwrap();
-                    f.moved = 0;
-                    drop(f);
-                    drop(pr1);
-                    for each in items.iter() {
-                        let pr_copy = pr.clone();
-                        let o_path = format!("{}/{}", origin_path.to_string(), each.name);
-                        let t_path = format!("{}/{}", target_path.to_string(), each.name);
-                        if each.checked {
-                            copy_file_buffer(&o_path, &t_path, &pr_copy);
+            if items.iter().count() > 0 {
+                thread::Builder::new()
+                    .spawn(move || {
+                        unsafe {
+                            PROGRESS_PTR.moved = 0;
+                            PROGRESS_PTR.total = 0;
+                            PROGRESS_PTR.status = ProgressStatus::Start;
+                        };
+
+                        for each in items.iter() {
+                            // let pr_copy = pr.clone();
+                            let o_path = format!("{}/{}", origin_path.to_string(), each.name);
+                            let t_path = format!("{}/{}", target_path.to_string(), each.name);
+                            if each.checked {
+                                copy_file_buffer(&o_path, &t_path);
+                            }
                         }
-                    }
-                })
-                .unwrap();
+                    })
+                    .unwrap();
+            }
         });
-    let progress_mutex_2 = progress_mutex.clone();
-    
+    // let progress_mutex_2 = progress_mutex.clone();
+
     app.global::<FileAction>()
-        .on_update_progress_status(move |x|{
-            let mut data = progress_mutex_2.lock().unwrap();
-            data.status = ProgressStatus::from_num(x);
+        .on_update_progress_status(move |x| unsafe {
+            PROGRESS_PTR.status = ProgressStatus::from_num(x);
         });
-    let progress_mutex_3 = progress_mutex.clone();
+    // let progress_mutex_3 = progress_mutex.clone();
     let progress_rc_copy = progress_rc.clone();
     let tick1 = slint::Timer::default();
+
     tick1.start(
         slint::TimerMode::Repeated,
         std::time::Duration::from_secs_f32(0.2),
         move || {
-            
             let total = progress_rc_copy.row_data(0);
             if let Some(total) = total {
-                let data1 = progress_mutex_3.lock().unwrap();
-                let mut data:ListItemProgress = data1.clone().into();
-                drop(data1);
-                data.total = total.total;
-                progress_rc_copy.set_row_data(
-                    0,
-                    data
-                );
-                
+                // println!("{:?}",total);
+                let data: ListItemProgress = {
+                    unsafe {
+                        PROGRESS_PTR.total = (total.total * 1024) as u64;
+                        println!("{:?}", PROGRESS_PTR);
+                        PROGRESS_PTR.into()
+                    }
+                };
+
+                progress_rc_copy.set_row_data(0, data);
             }
         },
     );
@@ -254,7 +268,7 @@ fn format_time(st: &std::time::SystemTime) -> String {
 fn copy_file_buffer(
     filepath: &str,
     target_filepath: &str,
-    buff: &Arc<Mutex<Progress>>,
+    // buff: Progress,
 ) -> Result<(), Box<dyn std::error::Error>> {
     const BUFFER_LEN: usize = 512;
     let mut buffer = [0u8; BUFFER_LEN];
@@ -263,30 +277,29 @@ fn copy_file_buffer(
     let mut target_bw = BufWriter::new(target_file);
 
     loop {
-        let mut bu = buff.lock().unwrap();
+        unsafe {
+            match PROGRESS_PTR.status {
+                ProgressStatus::Start | ProgressStatus::Continue => {
+                    let read_count = file.read(&mut buffer)?;
+                    target_bw.write(&buffer[..read_count])?;
+                    PROGRESS_PTR.moved = PROGRESS_PTR.moved + BUFFER_LEN as u64;
+                    if read_count != BUFFER_LEN {
+                        target_bw.flush()?;
+                        PROGRESS_PTR.status = ProgressStatus::Finish;
+                        break;
+                    }
+                }
 
-        match bu.status {
-            ProgressStatus::Start | ProgressStatus::Continue => {
-                let read_count = file.read(&mut buffer)?;
-                target_bw.write(&buffer[..read_count])?;
-                bu.moved = bu.moved + BUFFER_LEN as u64;
-                if read_count != BUFFER_LEN {
-                    target_bw.flush()?;
-                    bu.status = ProgressStatus::Finish;
+                ProgressStatus::Stop => {
+                    thread::sleep(Duration::new(1, 0));
+                }
+
+                ProgressStatus::Exit => {
                     break;
                 }
+                ProgressStatus::Finish => {}
             }
-            
-            ProgressStatus::Stop => {
-                thread::sleep(Duration::new(1, 0));
-            }
-
-            ProgressStatus::Exit => {
-                break;
-            }
-            ProgressStatus::Finish => {},
         }
-        drop(bu);
     }
     Ok(())
 }
