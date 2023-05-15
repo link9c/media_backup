@@ -31,6 +31,15 @@ static mut PROGRESS_PTR: Progress = Progress {
     status: ProgressStatus::Start,
 };
 
+pub fn reset_progress_ptr(){
+    unsafe{
+        PROGRESS_PTR.moved = 0;
+        PROGRESS_PTR.total = 0;
+        PROGRESS_PTR.status = ProgressStatus::Start;
+    }
+    
+}
+
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen(start))]
 fn main() {
     // let progress_ptr = Progress::default();
@@ -53,6 +62,7 @@ fn main() {
             total: 0,
             status: 6,
         }]));
+
 
     // 代开文件夹 渲染文件列表
     let list_item_copy = null_list_rc.clone();
@@ -172,11 +182,13 @@ fn main() {
             if count > 0 {
                 thread::Builder::new()
                     .spawn(move || {
-                        unsafe {
-                            PROGRESS_PTR.moved = 0;
-                            PROGRESS_PTR.total = 0;
-                            PROGRESS_PTR.status = ProgressStatus::Start;
-                        };
+                        // unsafe {
+                        //     PROGRESS_PTR.moved = 0;
+                        //     PROGRESS_PTR.total = 0;
+                        //     PROGRESS_PTR.status = ProgressStatus::Start;
+                        // };
+
+                        reset_progress_ptr();
 
                         for (i, each) in items.iter().enumerate() {
                             // let pr_copy = pr.clone();
@@ -197,10 +209,21 @@ fn main() {
             }
         });
     // let progress_mutex_2 = progress_mutex.clone();
-
+    let progress_rc_copy = progress_rc.clone();
     app.global::<FileAction>()
         .on_update_progress_status(move |x| unsafe {
-            PROGRESS_PTR.status = ProgressStatus::from_num(x);
+            let state = ProgressStatus::from_num(x);
+            PROGRESS_PTR.status = state;
+            if state == ProgressStatus::Exit{
+                progress_rc_copy.set_row_data(
+                    0,
+                    ListItemProgress {
+                        moved: 0,
+                        total: 0,
+                        status: 0,
+                    },
+                );
+            }
         });
     // let progress_mutex_3 = progress_mutex.clone();
     let progress_rc_copy = progress_rc.clone();
