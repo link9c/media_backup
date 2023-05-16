@@ -36,3 +36,10 @@ impl ProgressStatus {
         }
     }
 }
+
+/// 全局变量更新方式
+/// 
+pub enum StaticVarsType<T> {
+    Update(T),
+    Keep
+}

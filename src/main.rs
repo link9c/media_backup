@@ -1,51 +1,31 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 // #![deny(unsafe_code)]
-use chrono::prelude::{DateTime, Utc};
+
 use rfd::FileDialog;
 use slint::ComponentHandle;
 use slint::Model;
 use slint::SortModel;
 use slint::VecModel;
 
-use std::fs;
-use std::fs::File;
-use std::io::BufWriter;
-use std::io::Read;
-use std::io::Write;
-use std::path::Path;
 use std::rc::Rc;
-use std::sync::Arc;
-use std::sync::Mutex;
 use std::thread;
-use std::time::Duration;
 
 use crate::enums::ProgressStatus;
+use crate::enums::StaticVarsType;
+use crate::file_opt::copy_file_buffer;
+use crate::file_opt::visit_dirs;
+use crate::static_vars::get_progress_ptr;
+use crate::static_vars::update_progress_ptr;
 use crate::structs::from_slint::{App, FileAction, ListItemProgress, ListViewData, ListViewItem};
-use crate::structs::{FileInfo, Progress};
+use crate::structs::FileInfo;
 
 mod enums;
+mod file_opt;
+mod static_vars;
 mod structs;
-static mut PROGRESS_PTR: Progress = Progress {
-    moved: 0,
-    total: 0,
-    status: ProgressStatus::Start,
-};
-
-pub fn reset_progress_ptr(){
-    unsafe{
-        PROGRESS_PTR.moved = 0;
-        PROGRESS_PTR.total = 0;
-        PROGRESS_PTR.status = ProgressStatus::Start;
-    }
-    
-}
 
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen(start))]
 fn main() {
-    // let progress_ptr = Progress::default();
-
-    // let progress_mutex: Arc<Mutex<Progress>> = Arc::new(Mutex::new(Progress::default()));
-
     let app = App::new().unwrap();
     // app.on_clicked(|x|{});
     let handle = app.as_weak();
@@ -62,7 +42,6 @@ fn main() {
             total: 0,
             status: 6,
         }]));
-
 
     // 代开文件夹 渲染文件列表
     let list_item_copy = null_list_rc.clone();
@@ -153,20 +132,17 @@ fn main() {
         .on_copy_file(move |origin_path, target_path| {
             let items = list_item_copy
                 .iter()
-                .map(|x| FileInfo::from(x))
+                .filter_map(|x| {
+                    if x.checked {
+                        Some(FileInfo::from(x))
+                    } else {
+                        None
+                    }
+                })
                 .collect::<Vec<FileInfo>>();
 
             // println!("{:?}",items);
-            let data_size = items
-                .iter()
-                .map(|x| {
-                    if x.checked {
-                        (x.size / 1024) as i32
-                    } else {
-                        0 as i32
-                    }
-                })
-                .sum::<i32>();
+            let data_size = items.iter().map(|x| (x.size / 1024) as i32).sum::<i32>();
             println!("data-size:{}", data_size);
             progress_rc_copy.set_row_data(
                 0,
@@ -182,13 +158,11 @@ fn main() {
             if count > 0 {
                 thread::Builder::new()
                     .spawn(move || {
-                        // unsafe {
-                        //     PROGRESS_PTR.moved = 0;
-                        //     PROGRESS_PTR.total = 0;
-                        //     PROGRESS_PTR.status = ProgressStatus::Start;
-                        // };
-
-                        reset_progress_ptr();
+                        update_progress_ptr(
+                            StaticVarsType::Update(0),
+                            StaticVarsType::Update((data_size*1024) as u64),
+                            StaticVarsType::Update(ProgressStatus::Start),
+                        );
 
                         for (i, each) in items.iter().enumerate() {
                             // let pr_copy = pr.clone();
@@ -201,7 +175,7 @@ fn main() {
                                 ProgressStatus::Continue
                             };
                             if each.checked {
-                                copy_file_buffer(&o_path, &t_path, state);
+                                let _ = copy_file_buffer(&o_path, &t_path, state);
                             }
                         }
                     })
@@ -211,10 +185,15 @@ fn main() {
     // let progress_mutex_2 = progress_mutex.clone();
     let progress_rc_copy = progress_rc.clone();
     app.global::<FileAction>()
-        .on_update_progress_status(move |x| unsafe {
+        .on_update_progress_status(move |x| {
             let state = ProgressStatus::from_num(x);
-            PROGRESS_PTR.status = state;
-            if state == ProgressStatus::Exit{
+            // PROGRESS_PTR.status = state;
+            update_progress_ptr(
+                StaticVarsType::Keep,
+                StaticVarsType::Keep,
+                StaticVarsType::Update(state),
+            );
+            if state == ProgressStatus::Exit {
                 progress_rc_copy.set_row_data(
                     0,
                     ListItemProgress {
@@ -233,104 +212,11 @@ fn main() {
         slint::TimerMode::Repeated,
         std::time::Duration::from_secs_f32(0.2),
         move || {
-            let total = progress_rc_copy.row_data(0);
-            if let Some(total) = total {
-                // println!("{:?}",total);
-                let data: ListItemProgress = {
-                    unsafe {
-                        PROGRESS_PTR.total = (total.total * 1024) as u64;
-                        println!("{:?}", PROGRESS_PTR);
-                        PROGRESS_PTR.into()
-                    }
-                };
+            let data: ListItemProgress = get_progress_ptr().clone().into();
 
-                progress_rc_copy.set_row_data(0, data);
-            }
+            progress_rc_copy.set_row_data(0, data);
         },
     );
 
     app.run().unwrap();
-}
-
-fn visit_dirs(dir: &Path) -> Vec<FileInfo> {
-    let mut v: Vec<FileInfo> = vec![];
-    if dir.is_dir() {
-        if let Ok(entries) = fs::read_dir(dir) {
-            for entry in entries {
-                if let Ok(entry) = entry {
-                    // Here, `entry` is a `DirEntry`.
-                    let path = entry.path();
-                    if path.is_dir() {
-                        // visit_dirs(&path);
-                    } else {
-                        // println!("{:?}", entry.metadata());
-                        let file_size = entry.metadata().unwrap().len();
-                        let modified = entry.metadata().unwrap().modified().unwrap();
-                        let modified = format_time(&modified);
-                        let created = entry.metadata().unwrap().created().unwrap();
-                        let created = format_time(&created);
-                        let file_name = entry.file_name();
-
-                        // println!("File {} size: {}", file_name.to_string_lossy(), file_size);
-
-                        v.push({
-                            FileInfo {
-                                name: file_name.to_string_lossy().to_string(),
-                                size: file_size,
-                                modified_time: modified.into(),
-                                create_time: created.into(),
-                                checked: false,
-                            }
-                        })
-                    }
-                }
-            }
-        }
-    }
-    v
-}
-
-fn format_time(st: &std::time::SystemTime) -> String {
-    let dt: DateTime<Utc> = st.clone().into();
-    format!("{}", dt.format("%Y-%m-%d %H:%M:%S"))
-    // formats like "2001-07-08T00:34:60.026490+09:30"
-}
-
-fn copy_file_buffer(
-    filepath: &str,
-    target_filepath: &str,
-    state: ProgressStatus,
-) -> Result<(), Box<dyn std::error::Error>> {
-    const BUFFER_LEN: usize = 512;
-    let mut buffer = [0u8; BUFFER_LEN];
-    let mut file = File::open(filepath)?;
-    let target_file = File::create(target_filepath)?;
-    let mut target_bw = BufWriter::new(target_file);
-
-    loop {
-        unsafe {
-            match PROGRESS_PTR.status {
-                ProgressStatus::Start | ProgressStatus::Continue => {
-                    let read_count = file.read(&mut buffer)?;
-                    target_bw.write(&buffer[..read_count])?;
-                    PROGRESS_PTR.moved = PROGRESS_PTR.moved + BUFFER_LEN as u64;
-                    if read_count != BUFFER_LEN {
-                        target_bw.flush()?;
-                        PROGRESS_PTR.status = state;
-                        break;
-                    }
-                }
-
-                ProgressStatus::Stop => {
-                    thread::sleep(Duration::new(1, 0));
-                }
-
-                ProgressStatus::Exit => {
-                    break;
-                }
-                ProgressStatus::Finish => {}
-            }
-        }
-    }
-    Ok(())
 }
