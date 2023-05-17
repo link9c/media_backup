@@ -73,29 +73,6 @@ pub fn copy_file_buffer(
     let mut target_bw = BufWriter::new(target_file);
 
     loop {
-        // unsafe {
-        //     match PROGRESS_PTR.status {
-        //         ProgressStatus::Start | ProgressStatus::Continue => {
-        //             let read_count = file.read(&mut buffer)?;
-        //             target_bw.write(&buffer[..read_count])?;
-        //             PROGRESS_PTR.moved = PROGRESS_PTR.moved + BUFFER_LEN as u64;
-        //             if read_count != BUFFER_LEN {
-        //                 target_bw.flush()?;
-        //                 PROGRESS_PTR.status = state;
-        //                 break;
-        //             }
-        //         }
-
-        //         ProgressStatus::Stop => {
-        //             thread::sleep(Duration::new(1, 0));
-        //         }
-
-        //         ProgressStatus::Exit => {
-        //             break;
-        //         }
-        //         ProgressStatus::Finish => {}
-        //     }
-        // }
 
         let ptr = get_progress_ptr().clone();
         // println!("sssss{:?}",ptr);
