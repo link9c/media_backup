@@ -4,7 +4,6 @@ use crate::enums::ProgressStatus;
 use crate::enums::StaticVarsType;
 use crate::static_vars::get_progress_ptr;
 use crate::static_vars::update_progress_ptr;
-use crate::static_vars::PROGRESS_PTR;
 use crate::structs::FileInfo;
 
 use chrono::prelude::{DateTime, Utc};
@@ -35,16 +34,19 @@ pub fn visit_dirs(dir: &Path) -> Vec<FileInfo> {
                         let created = entry.metadata().unwrap().created().unwrap();
                         let created = format_time(&created);
                         let file_name = entry.file_name();
+                        let name = file_name.to_string_lossy().to_string();
 
+                        // let icon = get_file_type_icon(name.clone());
                         // println!("File {} size: {}", file_name.to_string_lossy(), file_size);
 
                         v.push({
                             FileInfo {
-                                name: file_name.to_string_lossy().to_string(),
+                                name: name,
                                 size: file_size,
                                 modified_time: modified.into(),
                                 create_time: created.into(),
                                 checked: false,
+                                // icon: icon,
                             }
                         })
                     }
@@ -73,7 +75,6 @@ pub fn copy_file_buffer(
     let mut target_bw = BufWriter::new(target_file);
 
     loop {
-
         let ptr = get_progress_ptr().clone();
         // println!("sssss{:?}",ptr);
         match ptr.status {
@@ -103,10 +104,72 @@ pub fn copy_file_buffer(
             }
 
             ProgressStatus::Exit => {
+                update_progress_ptr(
+                    StaticVarsType::Update(0),
+                    StaticVarsType::Update(0),
+                    StaticVarsType::Keep,
+                );
                 break;
             }
             ProgressStatus::Finish => {}
         }
     }
     Ok(())
+}
+
+fn get_file_type_icon(name: String) -> image::DynamicImage {
+    let sp = name.split(".").collect::<Vec<&str>>();
+    let file_type = sp[sp.len() - 1];
+    let mut path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+
+    let source_image_path = match file_type {
+        "ai" | "eps" => {
+            path.push("ui/images/file_type/ae.png");
+            path
+        }
+        "doc" | "docx" => {
+            path.push("images/file_type/doc rtf.png");
+            path
+        }
+
+        "html" | "htm" => {
+            path.push("ui/images/file_type/html htm IE.png");
+            path
+        }
+
+        "mpeg" | "avi" | "wav" | "ogg" | "mp3" | "mp4" | "mkv" => {
+            path.push("ui/images/file_type/mpeg avi wav ogg mp3.png");
+            path
+        }
+
+        "pdf" => {
+            path.push("ui/images/file_type/pdf.png");
+            path
+        }
+        "ppt" => {
+            path.push("ui/images/file_type/ppt.png");
+            path
+        }
+        "torrent" => {
+            path.push("ui/images/file_type/torrent.png");
+            path
+        }
+
+        "zip" | "rar" | "7z" => {
+            path.push("ui/images/file_type/zip rar.png");
+            path
+        }
+
+        "xls" | "xlsx" | "csv" | "xlsm" => {
+            path.push("ui/images/file_type/xls.png");
+            path
+        }
+
+        _ => {
+            path.push("ui/images/cat.jpg");
+            path
+        }
+    };
+    println!("path{:?}", source_image_path);
+    image::open(source_image_path).expect("Error loading cat image")
 }

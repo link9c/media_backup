@@ -6,7 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [package.metadata.bundle]
-name = "chicken_backup"
+name = "media_backup"
 identifier = "gyulyvgc.sniffnet"
 icon = ["./ui/images/icon.jpg"]
 

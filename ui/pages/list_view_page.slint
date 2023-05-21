@@ -1,8 +1,8 @@
 // Copyright © SixtyFPS GmbH <info@slint-ui.com>
 // SPDX-License-Identifier: GPL-3.0-only OR LicenseRef-Slint-commercial
 
-import { HorizontalBox, VerticalBox, ListView, StandardListView, GroupBox, CheckBox , Button, GridBox} from "std-widgets.slint";
-import { ListViewData, FileAction } from "../global_struct.slint";
+import { HorizontalBox, VerticalBox, ListView, StandardListView, GroupBox, CheckBox , Button, GridBox, LineEdit} from "std-widgets.slint";
+import { ListViewData, FileAction, Functions } from "../global_struct.slint";
 import { Page } from "page.slint";
 
 import { PushButton } from "../common.slint";
@@ -48,7 +48,7 @@ export component ListViewPage inherits Page {
                     HorizontalLayout {
                     //height: 20px;
                     Text { 
-                                    text: "copy to ↓"; 
+                                    text: "复制到 ↓"; 
                                     font-size: 14px;
                                     width: 100px;
                                     vertical-alignment: center;
@@ -90,8 +90,9 @@ export component ListViewPage inherits Page {
         
                 
                 progress := VerticalLayout {
-                    in property <int> moved : ListViewData.data-size[0].moved;
-                    in property <int> total : ListViewData.data-size[0].total;
+                    in property <int> moved : ListViewData.data-size[0].moved /1024;
+                    in property <int> total : ListViewData.data-size[0].total /1024;
+                    in property <int> progress-percent : 100 *(progress.moved / progress.total);
                     in property <int> status : ListViewData.data-size[0].status;
                     in-out property <bool> extend-btn : false ;
                     in-out property <bool> stop-continue: false;
@@ -149,13 +150,17 @@ export component ListViewPage inherits Page {
                             width: 200px;
                             height: 25px;
                             Rectangle {
-                            
+                                
                                 background: #3fd9ff;
-                                width: 200px * progress.moved / progress.total;
+                                width: progress.extend-btn ? 200px * progress-percent / 100: 0;
                                 height: 25px;
-                                Text {
-                                    text:100 * progress.moved / progress.total;
-                                }
+                                x: 0px;
+                                
+                            }
+                            Text {
+                                text: "\{progress-percent}%(\{progress.moved}mb/\{progress.total}mb)";
+                                horizontal-alignment: center;
+                                opacity: progress.extend-btn ? 100%: 0%;
                             }
                         }
                         
@@ -174,30 +179,38 @@ export component ListViewPage inherits Page {
     
     HorizontalLayout{
 
-
+        height: 30px;
    
+        spacing: 2px;
     
-    input-text := Rectangle {
-        height:30px;
-        border-color: #dccfdb;
-
-        border-radius: 5px;
-        border-width: 1px;
-            TextInput {
+        text-edit := LineEdit {
             
-                text: "";
-                vertical-alignment: center;
+                placeholder-text: "查询文件名称";
+                // vertical-alignment: center;
+                accepted(text) => {
+
                 }
         }
-
-        Button {
         
-            text:"search";
-            clicked => {
-                ListViewData.search-by-name("a")
 
+        Rectangle {
+            height: 30px;
+            width: 50px;
+            
+            Image {
+                source: @image-url("../images/1048152.jpg");
+                height: 30px;
+                width: 30px;
             }
+
+
+            TouchArea {
+                clicked => { ListViewData.search-by-name(text-edit.text)}
+            }
+           
         }
+        
+     
     
     }
     
@@ -219,7 +232,7 @@ export component ListViewPage inherits Page {
                     in-out property <bool> asent:true ;
                     in-out property <bool> sorted:false ;
                     height: 20px;
-                    text: sorted ? asent ? "name ↓": "name ↑": "name";
+                    text: sorted ? asent ? "名称 ↓": "名称 ↑": "名称";
                     font-size: 15px;
                     width: root.width * 0.26;
                     TouchArea {
@@ -241,7 +254,7 @@ export component ListViewPage inherits Page {
                     in-out property <bool> asent:true ;
                     in-out property <bool> sorted:false ;
                     height: 20px;
-                    text: sorted ? asent ? "size ↑": "size ↓": "size";
+                    text: sorted ? asent ? "大小 ↑": "大小 ↓": "大小";
                     font-size: 15px;
                     width: root.width * 0.12;
                     TouchArea {
@@ -263,7 +276,7 @@ export component ListViewPage inherits Page {
                     in-out property <bool> asent:true ;
                     in-out property <bool> sorted:false ;
                     height: 20px;
-                    text: sorted ? asent ? "create ↑": "create ↓": "create";
+                    text: sorted ? asent ? "创建时间 ↑": "创建时间 ↓": "创建时间";
                     font-size: 15px;
                     width: root.width * 0.21;
                     TouchArea {
@@ -284,9 +297,9 @@ export component ListViewPage inherits Page {
                     in-out property <bool> asent:true ;
                     in-out property <bool> sorted:false ;
                     height: 20px;
-                    text: sorted ? asent ? "modified ↑": "modified ↓": "modified";
+                    text: sorted ? asent ? "修改时间 ↑": "修改时间 ↓": "修改时间";
                     font-size: 15px;
-                    width:  root.width * 0.21;
+                    width:  root.width * 0.22;
                     TouchArea {
                         clicked => {
                             label-modified.sorted = true;
@@ -304,9 +317,9 @@ export component ListViewPage inherits Page {
               
                 Text {
                     
-                    text: "getall";
+                    text: "点击全选";
                     font-size: 15px;
-                     width:  root.width * 0.07;
+                     width:  root.width * 0.08;
                      TouchArea {
                         clicked => {
                             ListViewData.select-all()
@@ -324,33 +337,43 @@ export component ListViewPage inherits Page {
         GridLayout  {
             // preferred-width: 350px;
            
+
            ListView {
                 vertical-stretch: 0;
                 
                 for item[idx] in ListViewData.select-item : list-item := HorizontalBox {
-                    in property <bool> ck: ListViewData.select-item[idx].checked ;
+                    
+                    in property <bool> ck: item.checked;
+                    // in property <image> img: Functions.get-file-icon(ListViewData.select-item[idx].name);
                     min-height: 30px;
                     max-height: 60px;
                     Image {
                         width: root.width * 0.03;
-                        source: @image-url("../images/plus.svg");
+                        source: @image-url("") ;
                         
                     }
-                    name-text := Text {
-                        font-size: 14px;
-                        color: list-item.ck ? red: black;
-                        text: ListViewData.select-item[idx].name;
-                        width: root.width * 0.26;
-                        wrap: word-wrap;
-                        vertical-alignment: center;
 
+                    name-text := Rectangle {
+                        width: root.width * 0.26;
+                        background: item.show ? #fa7f7f: white;
+                         Text {
+                            font-size: 14px;
+                            color: list-item.ck ? #0c9400: black;
+                            text: item.name;
+                            width: root.width * 0.26;
+                            wrap: word-wrap;
+                            vertical-alignment: center;
+                            
+    
+                        }
                     }
+                    
 
                     size-text := Text {
                         
                         font-size: 14px;
-                        color: list-item.ck ? red: black;
-                        text: ListViewData.select-item[idx].size_show;
+                        color: list-item.ck ? #0c9400: black;
+                        text: item.size_show;
                         width: root.width * 0.12;
                         vertical-alignment: center;
 
@@ -359,8 +382,8 @@ export component ListViewPage inherits Page {
                     create-time-text := Text {
                         
                         font-size: 14px;
-                        color: list-item.ck ? red: black;
-                        text: ListViewData.select-item[idx].create_time;
+                        color: list-item.ck ? #0c9400: black;
+                        text: item.create_time;
                         width: root.width * 0.21;
                         vertical-alignment: center;
                     }
@@ -368,24 +391,24 @@ export component ListViewPage inherits Page {
                     modified-time-text := Text {
                        
                         font-size: 14px;
-                        color: list-item.ck ? red: black;
-                        text: ListViewData.select-item[idx].modified_time;
-                        width: root.width * 0.21;
+                        color: list-item.ck ? #0c9400: black;
+                        text: item.modified_time;
+                        width: root.width * 0.22;
                         vertical-alignment: center;
                     }
 
                     Rectangle {
-                        width: root.width * 0.07;
+                        width: root.width * 0.08;
                         Rectangle {
                             border-color: #381eac;
                             border-radius: 3px;
                             border-width: 1px;
-                            background: ListViewData.select-item[idx].checked ? #14c8e7: white;
+                            background: item.checked ? #14c8e7: white;
                             width: 20px;
                             height: 20px;
                             TouchArea {
                                 clicked => { 
-                                    ListViewData.select-item[idx].checked = !ck; 
+                                    item.checked = !ck; 
                                     selected-idx = idx;
                                  
                                 }

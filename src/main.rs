@@ -43,7 +43,7 @@ fn main() {
             status: 6,
         }]));
 
-    // 代开文件夹 渲染文件列表
+    // 打开文件夹 渲染文件列表
     let list_item_copy = null_list_rc.clone();
     let progress_rc_copy = progress_rc.clone();
     app.global::<FileAction>().on_get_file_path(move |idx| {
@@ -98,6 +98,8 @@ fn main() {
                     modified_time: data.modified_time,
                     create_time: data.create_time,
                     size_show: data.size_show,
+                    file_type: data.file_type,
+                    show: data.show, // icon:data.icon
                 },
             );
         }
@@ -124,6 +126,33 @@ fn main() {
         });
         let sorted_item = sorted_model.iter().collect::<Vec<ListViewItem>>();
         list_item_copy.set_vec(sorted_item);
+    });
+    // 查询文件
+    let list_item_copy = null_list_rc.clone();
+    app.global::<ListViewData>().on_search_by_name(move |text| {
+        let mut filter_item = list_item_copy
+            .iter()
+            .map(|mut x| {
+                if text.len() > 0 {
+                    if x.name.contains(&text.to_string()) {
+                        x.show = true;
+                        x.checked= true;
+                    } else {
+                        x.show = false;
+                        
+                    }
+                } else {
+                    x.show = false;
+                 
+                }
+
+                x
+            })
+            .collect::<Vec<ListViewItem>>();
+
+        filter_item.sort_by_key(|x| !x.show);
+
+        list_item_copy.set_vec(filter_item);
     });
     // 备份文件
     let list_item_copy = null_list_rc.clone();
@@ -160,7 +189,7 @@ fn main() {
                     .spawn(move || {
                         update_progress_ptr(
                             StaticVarsType::Update(0),
-                            StaticVarsType::Update((data_size*1024) as u64),
+                            StaticVarsType::Update((data_size as u64) * 1024),
                             StaticVarsType::Update(ProgressStatus::Start),
                         );
 
@@ -182,8 +211,6 @@ fn main() {
                     .unwrap();
             }
         });
-    // let progress_mutex_2 = progress_mutex.clone();
-    let progress_rc_copy = progress_rc.clone();
     app.global::<FileAction>()
         .on_update_progress_status(move |x| {
             let state = ProgressStatus::from_num(x);
@@ -193,21 +220,11 @@ fn main() {
                 StaticVarsType::Keep,
                 StaticVarsType::Update(state),
             );
-            if state == ProgressStatus::Exit {
-                progress_rc_copy.set_row_data(
-                    0,
-                    ListItemProgress {
-                        moved: 0,
-                        total: 0,
-                        status: 0,
-                    },
-                );
-            }
         });
-    // let progress_mutex_3 = progress_mutex.clone();
+
+    // 获取进度信息
     let progress_rc_copy = progress_rc.clone();
     let tick1 = slint::Timer::default();
-
     tick1.start(
         slint::TimerMode::Repeated,
         std::time::Duration::from_secs_f32(0.2),
