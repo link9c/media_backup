@@ -1,6 +1,5 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 // #![deny(unsafe_code)]
-
 use rfd::FileDialog;
 use slint::ComponentHandle;
 use slint::Model;
@@ -227,7 +226,7 @@ fn main() {
     let tick1 = slint::Timer::default();
     tick1.start(
         slint::TimerMode::Repeated,
-        std::time::Duration::from_secs_f32(0.2),
+        std::time::Duration::from_secs_f32(0.5),
         move || {
             let data: ListItemProgress = get_progress_ptr().clone().into();
 

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only OR LicenseRef-Slint-commercial
 
 import { HorizontalBox, VerticalBox, ListView, StandardListView, GroupBox, CheckBox , Button, GridBox, LineEdit} from "std-widgets.slint";
-import { ListViewData, FileAction, Functions } from "../global_struct.slint";
+import { ListViewData, FileAction} from "../global_struct.slint";
 import { Page } from "page.slint";
 
 import { PushButton } from "../common.slint";
@@ -203,9 +203,11 @@ export component ListViewPage inherits Page {
                 width: 30px;
             }
 
+            
 
             TouchArea {
                 clicked => { ListViewData.search-by-name(text-edit.text)}
+               
             }
            
         }
@@ -246,6 +248,7 @@ export component ListViewPage inherits Page {
 
                             ListViewData.sort-by(0, asent);
                             }
+                            
                         }
                     }
 
