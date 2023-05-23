@@ -99,6 +99,7 @@ fn main() {
                     size_show: data.size_show,
                     file_type: data.file_type,
                     show: data.show, // icon:data.icon
+                    is_dir:data.is_dir
                 },
             );
         }
@@ -110,14 +111,14 @@ fn main() {
             if asent {
                 match idx {
                     0 => lhs.name.to_lowercase().cmp(&rhs.name.to_lowercase()),
-                    1 => lhs.size.cmp(&rhs.size),
+                    1 => lhs.get_size().cmp(&rhs.get_size()),
                     2 => lhs.create_time.cmp(&rhs.create_time),
                     _ => lhs.modified_time.cmp(&rhs.modified_time),
                 }
             } else {
                 match idx {
                     0 => rhs.name.to_lowercase().cmp(&lhs.name.to_lowercase()),
-                    1 => rhs.size.cmp(&lhs.size),
+                    1 => rhs.get_size().cmp(&lhs.get_size()),
                     2 => rhs.create_time.cmp(&lhs.create_time),
                     _ => rhs.modified_time.cmp(&lhs.modified_time),
                 }

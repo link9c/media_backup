@@ -43,3 +43,4 @@ pub enum StaticVarsType<T> {
     Update(T),
     Keep
 }
+

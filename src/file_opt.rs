@@ -24,32 +24,38 @@ pub fn visit_dirs(dir: &Path) -> Vec<FileInfo> {
                 if let Ok(entry) = entry {
                     // Here, `entry` is a `DirEntry`.
                     let path = entry.path();
-                    if path.is_dir() {
+                    let file_size = entry.metadata().unwrap().len();
+                    let modified = entry.metadata().unwrap().modified().unwrap();
+                    let modified = format_time(&modified);
+                    let created = entry.metadata().unwrap().created().unwrap();
+                    let created = format_time(&created);
+                    let file_name = entry.file_name();
+                    let name = file_name.to_string_lossy().to_string();
+                    let dirs = if path.is_dir() {
                         // visit_dirs(&path);
+                        true
                     } else {
                         // println!("{:?}", entry.metadata());
-                        let file_size = entry.metadata().unwrap().len();
-                        let modified = entry.metadata().unwrap().modified().unwrap();
-                        let modified = format_time(&modified);
-                        let created = entry.metadata().unwrap().created().unwrap();
-                        let created = format_time(&created);
-                        let file_name = entry.file_name();
-                        let name = file_name.to_string_lossy().to_string();
+                      
 
                         // let icon = get_file_type_icon(name.clone());
                         // println!("File {} size: {}", file_name.to_string_lossy(), file_size);
+                        false
+                        
+                    };
 
-                        v.push({
-                            FileInfo {
-                                name: name,
-                                size: file_size,
-                                modified_time: modified.into(),
-                                create_time: created.into(),
-                                checked: false,
-                                // icon: icon,
-                            }
-                        })
-                    }
+
+                    v.push({
+                        FileInfo {
+                            name: name,
+                            size: file_size,
+                            modified_time: modified.into(),
+                            create_time: created.into(),
+                            checked: false,
+                            is_dir: dirs
+                            // icon: icon,
+                        }
+                    })
                 }
             }
         }

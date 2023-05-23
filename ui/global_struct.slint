@@ -9,7 +9,8 @@ export struct ListViewItem{
     create_time: string,
     size_show: string,
     file_type: string,
-    show: bool
+    show: bool,
+    is_dir:bool
 }
 
 
@@ -23,33 +24,33 @@ export struct ListItemProgress {
 // export global Functions {
   
 
-//     public pure function get-file-icon(name: string) -> image {
-//         // if (name.)
-//         if (name == "ae"){
-//             return @image-url("./images/file_type/ae.png");
-//         }else if (name == "ai" || name == "eps"){
-//             return @image-url("./images/file_type/ai eps.png");
-//         }else if (name == "doc" || name == "docx"){
-//             return @image-url("./images/file_type/doc rtf.png");
-//         }else if (name == "html" || name == "htm"){
-//             return @image-url("./images/file_type/html htm IE.png");
-//         }else if (name == "mpeg" || name == "avi" || name == "wav" || name == "ogg" || name == "mp3" || name == "mp4" || name == "mkv"){
-//             return @image-url("./images/file_type/mpeg avi wav ogg mp3.png");
-//         }else if (name == "pdf"){
-//             return @image-url("./images/file_type/pdf.png");
-//         }else if (name == "ppt"){
-//             return @image-url("./images/file_type/ppt.png");
-//         }else if (name == "torrent"){
-//             return @image-url("./images/file_type/torrent.png");
-//         }else if (name == "xls" || name == "xlsx" || name == "csv" || name == "xlsm"){
-//             return @image-url("./images/file_type/xls.png");
-//         }else if (name == "zip" || name == "rar" || name == "7z"){
-//             return @image-url("./images/file_type/zip rar.png");
-//         }
-//         else{
-//             return @image-url("./images/scan.svg");
-//         }
-//     }
+    // public pure function get-file-icon(name: string) -> image {
+    //     // if (name.)
+    //     if (name == "ae"){
+    //         return @image-url("./images/file_type/ae.png");
+    //     }else if (name == "ai" || name == "eps"){
+    //         return @image-url("./images/file_type/ai eps.png");
+    //     }else if (name == "doc" || name == "docx"){
+    //         return @image-url("./images/file_type/doc rtf.png");
+    //     }else if (name == "html" || name == "htm"){
+    //         return @image-url("./images/file_type/html htm IE.png");
+    //     }else if (name == "mpeg" || name == "avi" || name == "wav" || name == "ogg" || name == "mp3" || name == "mp4" || name == "mkv"){
+    //         return @image-url("./images/file_type/mpeg avi wav ogg mp3.png");
+    //     }else if (name == "pdf"){
+    //         return @image-url("./images/file_type/pdf.png");
+    //     }else if (name == "ppt"){
+    //         return @image-url("./images/file_type/ppt.png");
+    //     }else if (name == "torrent"){
+    //         return @image-url("./images/file_type/torrent.png");
+    //     }else if (name == "xls" || name == "xlsx" || name == "csv" || name == "xlsm"){
+    //         return @image-url("./images/file_type/xls.png");
+    //     }else if (name == "zip" || name == "rar" || name == "7z"){
+    //         return @image-url("./images/file_type/zip rar.png");
+    //     }
+    //     else{
+    //         return @image-url("./images/scan.svg");
+    //     }
+    // }
 // }
 
 

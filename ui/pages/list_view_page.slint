@@ -9,6 +9,7 @@ import { PushButton } from "../common.slint";
 
 
 
+
 export component ListViewPage inherits Page {
 
    
@@ -351,10 +352,32 @@ export component ListViewPage inherits Page {
                     min-height: 30px;
                     max-height: 60px;
                     Image {
+                   
                         width: root.width * 0.03;
-                        source: @image-url("") ;
+                        // source: item.file_type == ".png" ? @image-url("../images/list.svg"):  @image-url("../images/copy.svg");
+                        source:  item.file_type != "png" ? 
+                        (item.file_type != "doc" && item.file_type != "docx") ? 
+                        item.file_type != "html" ? 
+                        (item.file_type != "mpeg" && item.file_type != "avi" && item.file_type != "wav" && item.file_type != "ogg" && item.file_type != "mp3" && item.file_type != "mp4" && item.file_type != "mkv") ? 
+                        (item.file_type != "ppt" && item.file_type != "pptx") ? 
+                        item.file_type != "pdf" ? 
+                        item.file_type != "torrent" ?
+                        (item.file_type != "xls" && item.file_type != "xlsx" && item.file_type != "csv" && item.file_type != "xlsm") ?
+                        (item.file_type != "zip" && item.file_type != "rar" && item.file_type != "7z") ? 
+                        @image-url("../images/scan.svg"):
+                        @image-url("../images/file_type/zip rar.png"): 
+                        @image-url("../images/file_type/xls.png"): 
+                        @image-url("../images/file_type/torrent.png"): 
+                        @image-url("../images/file_type/pdf.png"):
+                        @image-url("../images/file_type/ppt.png"): 
+                        @image-url("../images/file_type/mpeg avi wav ogg mp3.png"): 
+                        @image-url("../images/file_type/doc rtf.png"): 
+                        @image-url("../images/file_type/ai eps.png"): 
+                        @image-url("../images/file_type/ae.png")
+                        ;
                         
                     }
+
 
                     name-text := Rectangle {
                         width: root.width * 0.26;

@@ -1,5 +1,18 @@
 pub mod from_slint {
     slint::include_modules!();
+
+    impl ListViewItem {
+        pub fn get_size(&self) ->u64{
+            let size = if self.size_show == String::from("kb"){
+                (self.size as u64)*1024
+            }else if self.size_show == String::from("mb"){
+                (self.size as u64)*1024*1024
+            }else{
+                self.size as u64
+            };
+            size
+        }
+    }
 }
 
 use crate::enums::ProgressStatus;
@@ -10,6 +23,7 @@ pub struct FileInfo {
     pub size: u64,
     pub modified_time: String,
     pub create_time: String,
+    pub is_dir:bool
     // pub icon:image::DynamicImage
 }
 
@@ -21,6 +35,7 @@ impl From<from_slint::ListViewItem> for FileInfo {
             size: value.size as u64 * 1024 * 1024,
             modified_time: value.modified_time.to_string(),
             create_time: value.create_time.to_string(),
+            is_dir:value.is_dir
             // icon:image::DynamicImage::default()
         }
     }
@@ -40,7 +55,7 @@ impl Into<from_slint::ListViewItem> for FileInfo {
         let sp = name_clone.split(".").collect::<Vec<&str>>();
         let file_type = sp[sp.len() - 1];
 
-
+        println!("file type {}",file_type);
         // let source_image = {
         //     let mut cat_path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
         //     cat_path.push("cat.jpg");
@@ -64,7 +79,8 @@ impl Into<from_slint::ListViewItem> for FileInfo {
             size: (self.size / 1024 / 1024) as i32,
             size_show: show.into(),
             file_type: file_type.to_string().into(),
-            show:false
+            show:false,
+            is_dir:self.is_dir
             // icon:icon_rc
         }
     }
