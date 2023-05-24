@@ -55,7 +55,7 @@ impl Into<from_slint::ListViewItem> for FileInfo {
         let sp = name_clone.split(".").collect::<Vec<&str>>();
         let file_type = sp[sp.len() - 1];
 
-        println!("file type {}",file_type);
+        // println!("file type {}",file_type);
         // let source_image = {
         //     let mut cat_path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
         //     cat_path.push("cat.jpg");

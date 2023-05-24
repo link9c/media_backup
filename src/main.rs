@@ -6,12 +6,13 @@ use slint::Model;
 use slint::SortModel;
 use slint::VecModel;
 
+use std::path::Path;
 use std::rc::Rc;
 use std::thread;
 
 use crate::enums::ProgressStatus;
 use crate::enums::StaticVarsType;
-use crate::file_opt::copy_file_buffer;
+use crate::file_opt::copy_folder_content;
 use crate::file_opt::visit_dirs;
 use crate::static_vars::get_progress_ptr;
 use crate::static_vars::update_progress_ptr;
@@ -190,21 +191,25 @@ fn main() {
                         update_progress_ptr(
                             StaticVarsType::Update(0),
                             StaticVarsType::Update((data_size as u64) * 1024),
-                            StaticVarsType::Update(ProgressStatus::Start),
+                            StaticVarsType::Update(ProgressStatus::Continue),
                         );
 
                         for (i, each) in items.iter().enumerate() {
                             // let pr_copy = pr.clone();
-                            let o_path = format!("{}/{}", origin_path.to_string(), each.name);
-                            let t_path = format!("{}/{}", target_path.to_string(), each.name);
-                            println!("{},{}", i, count);
-                            let state = if i == count {
+                            let o_path = format!("{}\\{}", origin_path.to_string(), each.name);
+                            let t_path = format!("{}\\{}", target_path.to_string(), each.name);
+                            println!("{}->{}", o_path, t_path);
+                            let o_path = Path::new(o_path.as_str());
+                            let t_path = Path::new(t_path.as_str());
+                            
+                            let state = if i == count-1 {
                                 ProgressStatus::Finish
                             } else {
                                 ProgressStatus::Continue
                             };
                             if each.checked {
-                                let _ = copy_file_buffer(&o_path, &t_path, state);
+                                let res = copy_folder_content(o_path, t_path, state);
+                                println!("res:{:?}",res);
                             }
                         }
                     })
@@ -230,7 +235,7 @@ fn main() {
         std::time::Duration::from_secs_f32(0.5),
         move || {
             let data: ListItemProgress = get_progress_ptr().clone().into();
-
+            println!("{:?}",data);
             progress_rc_copy.set_row_data(0, data);
         },
     );

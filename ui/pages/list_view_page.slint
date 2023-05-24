@@ -91,10 +91,12 @@ export component ListViewPage inherits Page {
         
                 
                 progress := VerticalLayout {
+                    in property <int> status : ListViewData.data-size[0].status;
                     in property <int> moved : ListViewData.data-size[0].moved /1024;
                     in property <int> total : ListViewData.data-size[0].total /1024;
-                    in property <int> progress-percent : 100 *(progress.moved / progress.total);
-                    in property <int> status : ListViewData.data-size[0].status;
+                    in property <int> progress-percent : 
+                    status != 4 ? 100 * (progress.moved / progress.total) > 99 ? 99 : 100 * (progress.moved / progress.total): 100;
+                    
                     in-out property <bool> extend-btn : false ;
                     in-out property <bool> stop-continue: false;
                     HorizontalLayout {
@@ -111,7 +113,7 @@ export component ListViewPage inherits Page {
                                 FileAction.copy-file(FileAction.origin-path, FileAction.target-path);
 
                             }
-                            enabled: progress.total != 0 ? (progress.moved / progress.total > 0.99 || progress.moved / progress.total == 0) ? true: false: true;
+                            enabled: (status == 4 || status == 3 || status == 0) ? true: false;
 
                         }
                         stop-btn := PushButton {
@@ -355,25 +357,39 @@ export component ListViewPage inherits Page {
                    
                         width: root.width * 0.03;
                         // source: item.file_type == ".png" ? @image-url("../images/list.svg"):  @image-url("../images/copy.svg");
-                        source:  item.file_type != "png" ? 
+                        source:  !item.is_dir ?
+                        (item.file_type != "png" && item.file_type != "jpg") ?  
                         (item.file_type != "doc" && item.file_type != "docx") ? 
-                        item.file_type != "html" ? 
-                        (item.file_type != "mpeg" && item.file_type != "avi" && item.file_type != "wav" && item.file_type != "ogg" && item.file_type != "mp3" && item.file_type != "mp4" && item.file_type != "mkv") ? 
+                        (item.file_type != "html" && item.file_type != "htm") ? 
+                        (item.file_type != "mp3" && item.file_type != "wav" && item.file_type != "flac") ?
+                        (item.file_type != "mpeg" && item.file_type != "avi"  && item.file_type != "ogg" && item.file_type != "mp4" && item.file_type != "mkv") ? 
                         (item.file_type != "ppt" && item.file_type != "pptx") ? 
                         item.file_type != "pdf" ? 
                         item.file_type != "torrent" ?
                         (item.file_type != "xls" && item.file_type != "xlsx" && item.file_type != "csv" && item.file_type != "xlsm") ?
                         (item.file_type != "zip" && item.file_type != "rar" && item.file_type != "7z") ? 
-                        @image-url("../images/scan.svg"):
-                        @image-url("../images/file_type/zip rar.png"): 
-                        @image-url("../images/file_type/xls.png"): 
-                        @image-url("../images/file_type/torrent.png"): 
-                        @image-url("../images/file_type/pdf.png"):
-                        @image-url("../images/file_type/ppt.png"): 
-                        @image-url("../images/file_type/mpeg avi wav ogg mp3.png"): 
-                        @image-url("../images/file_type/doc rtf.png"): 
-                        @image-url("../images/file_type/ai eps.png"): 
-                        @image-url("../images/file_type/ae.png")
+                        (item.file_type != "txt") ?
+                        (item.file_type != "psd") ?
+                        (item.file_type != "svg") ?
+                        (item.file_type != "iso") ?
+                        (item.file_type != "exe") ?
+                        @image-url("../images/file_type/unknow.svg"):
+                        @image-url("../images/file_type/exe.svg"):
+                        @image-url("../images/file_type/iso.svg"):
+                        @image-url("../images/file_type/svg.svg"):
+                        @image-url("../images/file_type/ps.svg"): 
+                        @image-url("../images/file_type/txt.svg"): 
+                        @image-url("../images/file_type/zip_rar.svg"): 
+                        @image-url("../images/file_type/xlsx.svg"): 
+                        @image-url("../images/file_type/torrent.svg"): 
+                        @image-url("../images/file_type/pdf.svg"):
+                        @image-url("../images/file_type/ppt.svg"): 
+                        @image-url("../images/file_type/mov_mp4.svg"): 
+                        @image-url("../images/file_type/mp3_wav.svg"):
+                        @image-url("../images/file_type/html.svg"): 
+                        @image-url("../images/file_type/word.svg"): 
+                        @image-url("../images/file_type/jpg_png.svg"):
+                        @image-url("../images/file_type/files.svg")
                         ;
                         
                     }

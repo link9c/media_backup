@@ -36,14 +36,11 @@ pub fn visit_dirs(dir: &Path) -> Vec<FileInfo> {
                         true
                     } else {
                         // println!("{:?}", entry.metadata());
-                      
 
                         // let icon = get_file_type_icon(name.clone());
                         // println!("File {} size: {}", file_name.to_string_lossy(), file_size);
                         false
-                        
                     };
-
 
                     v.push({
                         FileInfo {
@@ -52,8 +49,7 @@ pub fn visit_dirs(dir: &Path) -> Vec<FileInfo> {
                             modified_time: modified.into(),
                             create_time: created.into(),
                             checked: false,
-                            is_dir: dirs
-                            // icon: icon,
+                            is_dir: dirs, // icon: icon,
                         }
                     })
                 }
@@ -69,11 +65,11 @@ fn format_time(st: &std::time::SystemTime) -> String {
     // formats like "2001-07-08T00:34:60.026490+09:30"
 }
 
-pub fn copy_file_buffer(
-    filepath: &str,
-    target_filepath: &str,
+fn copy_file_buffer(
+    filepath: &Path,
+    target_filepath: &Path,
     state: ProgressStatus,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> std::io::Result<()> {
     const BUFFER_LEN: usize = 512;
     let mut buffer = [0u8; BUFFER_LEN];
     let mut file = File::open(filepath)?;
@@ -117,65 +113,45 @@ pub fn copy_file_buffer(
                 );
                 break;
             }
-            ProgressStatus::Finish => {}
+            ProgressStatus::Finish => {break;}
         }
     }
     Ok(())
 }
 
-fn get_file_type_icon(name: String) -> image::DynamicImage {
-    let sp = name.split(".").collect::<Vec<&str>>();
-    let file_type = sp[sp.len() - 1];
-    let mut path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-
-    let source_image_path = match file_type {
-        "ai" | "eps" => {
-            path.push("ui/images/file_type/ae.png");
-            path
+pub fn copy_folder_content(
+    filepath: &Path,
+    target_filepath: &Path,
+    state: ProgressStatus,
+) -> std::io::Result<()> {
+    // let src = Path::new(filepath);
+    // let dst = Path::new(target_filepath);
+    if filepath.is_dir() {
+        let _ = fs::create_dir(target_filepath);
+        if let Ok(entries) = fs::read_dir(filepath) {
+            
+            for entry in entries {
+                if let Ok(entry) = entry {
+                    // Here, `entry` is a `DirEntry`.
+                    
+                    let path = entry.path();
+                    // println!("{:?}", entry);
+                    let file_name = entry.file_name();
+                    let dsr = target_filepath.join(file_name.to_string_lossy().to_string());
+                    if path.is_dir() {
+                        // println!("dir:{:?}-->{:?}", path, dsr);
+                        let _ = fs::create_dir(dsr.clone());
+                        copy_folder_content(&path, &dsr, state)?;
+                    } else {
+                        // println!("copy1:{:?}-->{:?}", filepath, dsr);
+                        copy_file_buffer(&path, &dsr, state)?;
+                    };
+                }
+            }
         }
-        "doc" | "docx" => {
-            path.push("images/file_type/doc rtf.png");
-            path
-        }
-
-        "html" | "htm" => {
-            path.push("ui/images/file_type/html htm IE.png");
-            path
-        }
-
-        "mpeg" | "avi" | "wav" | "ogg" | "mp3" | "mp4" | "mkv" => {
-            path.push("ui/images/file_type/mpeg avi wav ogg mp3.png");
-            path
-        }
-
-        "pdf" => {
-            path.push("ui/images/file_type/pdf.png");
-            path
-        }
-        "ppt" => {
-            path.push("ui/images/file_type/ppt.png");
-            path
-        }
-        "torrent" => {
-            path.push("ui/images/file_type/torrent.png");
-            path
-        }
-
-        "zip" | "rar" | "7z" => {
-            path.push("ui/images/file_type/zip rar.png");
-            path
-        }
-
-        "xls" | "xlsx" | "csv" | "xlsm" => {
-            path.push("ui/images/file_type/xls.png");
-            path
-        }
-
-        _ => {
-            path.push("ui/images/cat.jpg");
-            path
-        }
-    };
-    println!("path{:?}", source_image_path);
-    image::open(source_image_path).expect("Error loading cat image")
+    } else {
+        // println!("copy2:{:?}-->{:?}", filepath, target_filepath);
+        copy_file_buffer(filepath, target_filepath, state)?;
+    }
+    Ok(())
 }
