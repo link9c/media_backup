@@ -8,7 +8,7 @@ edition = "2021"
 [package.metadata.bundle]
 name = "media_backup"
 identifier = "gyulyvgc.sniffnet"
-icon = ["./ui/images/icon.jpg"]
+icon = ["./ui/images/icon.ico"]
 
 [dependencies]
 chrono = "0.4.0"

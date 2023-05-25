@@ -58,6 +58,14 @@ fn main() {
                 let ui = handle.unwrap();
                 println!("----{}", idx);
                 if idx == 0 {
+                    progress_rc_copy.set_row_data(
+                        0,
+                        ListItemProgress {
+                            moved: 0,
+                            total: 0,
+                            status: 0,
+                        },
+                    );
                     let data = res
                         .iter()
                         .map(|x| x.clone().into())
@@ -144,6 +152,7 @@ fn main() {
                     }
                 } else {
                     x.show = false;
+                    // x.checked = false;
                  
                 }
 

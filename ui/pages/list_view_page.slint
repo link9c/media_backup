@@ -119,7 +119,7 @@ export component ListViewPage inherits Page {
                         stop-btn := PushButton {
                             width: progress.extend-btn ? 55px: 0px;
                             text:"暂停";
-                            enabled: !progress.stop-continue ;
+                            enabled: status == 2 ? true: false ;
                             clicked => {
                                 progress.stop-continue = !progress.stop-continue;
                                 FileAction.update-progress-status(1);
@@ -129,7 +129,7 @@ export component ListViewPage inherits Page {
                         continue-btn := PushButton {
                             width: progress.extend-btn ? 55px: 0px;
                             text:"继续";
-                            enabled: progress.stop-continue ;
+                            enabled: status == 2 ? true: false ;
                             clicked => {
                                 progress.stop-continue = !progress.stop-continue;
                                 FileAction.update-progress-status(2);
@@ -161,7 +161,7 @@ export component ListViewPage inherits Page {
                                 
                             }
                             Text {
-                                text: "\{progress-percent}%(\{progress.moved}mb/\{progress.total}mb)";
+                                text: "\{progress-percent}%(\{progress.moved}mb)";
                                 horizontal-alignment: center;
                                 opacity: progress.extend-btn ? 100%: 0%;
                             }
@@ -184,7 +184,7 @@ export component ListViewPage inherits Page {
 
         height: 30px;
    
-        spacing: 2px;
+        spacing: 5px;
     
         text-edit := LineEdit {
             
@@ -198,18 +198,47 @@ export component ListViewPage inherits Page {
 
         Rectangle {
             height: 30px;
-            width: 50px;
+            width: 30px;
+            border-radius: 5px;
+            border-width: 1px;
+            border-color: black;
+            background: area1.has-hover ? #36fc68: white;
             
             Image {
-                source: @image-url("../images/1048152.jpg");
+                source: @image-url("../images/search.svg");
+                height: 30px;
+                width: 30px;
+
+            }
+
+            
+
+            area1 := TouchArea {
+                clicked => { ListViewData.search-by-name(text-edit.text)}
+               
+            }
+           
+        }
+        Rectangle {
+            height: 30px;
+            width: 30px;
+            border-radius: 5px;
+            border-width: 1px;
+            border-color: black;
+            background: area2.has-hover ? #fc36a9: white;
+            Image {
+                source: @image-url("../images/close.svg");
                 height: 30px;
                 width: 30px;
             }
 
             
 
-            TouchArea {
-                clicked => { ListViewData.search-by-name(text-edit.text)}
+            area2 := TouchArea {
+                clicked => { 
+                    ListViewData.search-by-name("");
+                    text-edit.text = ""
+                }
                
             }
            
@@ -240,7 +269,8 @@ export component ListViewPage inherits Page {
                     text: sorted ? asent ? "名称 ↓": "名称 ↑": "名称";
                     font-size: 15px;
                     width: root.width * 0.26;
-                    TouchArea {
+                    color: name-area.has-hover ? #00a357: black;
+                    name-area := TouchArea {
                         clicked => {
                             label-name.sorted = true;
                             label-name.asent = !label-name.asent;
@@ -263,10 +293,12 @@ export component ListViewPage inherits Page {
                     text: sorted ? asent ? "大小 ↑": "大小 ↓": "大小";
                     font-size: 15px;
                     width: root.width * 0.12;
-                    TouchArea {
+                    color: size-area.has-hover ? #00a357: black;
+                    size-area := TouchArea {
                         clicked => {
                             label-size.sorted = true;
                             label-size.asent = !label-size.asent;
+                      
 
                             label-name.sorted = false;
                             label-create.sorted = false;
@@ -274,6 +306,8 @@ export component ListViewPage inherits Page {
 
                             ListViewData.sort-by(1, asent);
                             }
+
+                        
                         }
                     
                     }
@@ -285,7 +319,8 @@ export component ListViewPage inherits Page {
                     text: sorted ? asent ? "创建时间 ↑": "创建时间 ↓": "创建时间";
                     font-size: 15px;
                     width: root.width * 0.21;
-                    TouchArea {
+                    color: create-area.has-hover ? #00a357: black;
+                    create-area := TouchArea {
                         clicked => {
                             label-create.sorted = true;
                             label-create.asent = !label-create.asent;
@@ -306,7 +341,8 @@ export component ListViewPage inherits Page {
                     text: sorted ? asent ? "修改时间 ↑": "修改时间 ↓": "修改时间";
                     font-size: 15px;
                     width:  root.width * 0.22;
-                    TouchArea {
+                    color: modified-area.has-hover ? #00a357: black;
+                    modified-area := TouchArea {
                         clicked => {
                             label-modified.sorted = true;
                             label-modified.asent = !label-modified.asent;
@@ -325,13 +361,14 @@ export component ListViewPage inherits Page {
                     
                     text: "点击全选";
                     font-size: 15px;
-                     width:  root.width * 0.08;
-                     TouchArea {
+                    width:  root.width * 0.08;
+                    color: all-area.has-hover ? #00a357: black;
+                    all-area := TouchArea {
                         clicked => {
                             ListViewData.select-all()
                             }
-                        }
                     }
+                }
 
               
                 
