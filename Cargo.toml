@@ -13,7 +13,7 @@ keywords    = [ "filter", "gui", "backup" ]
 
 [package.metadata.bundle]
 name = "media_backup"
-identifier = "gyulyvgc.sniffnet"
+identifier = "Link"
 icon = ["./ui/images/icon.ico"]
 
 [dependencies]
