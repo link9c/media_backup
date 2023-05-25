@@ -5,9 +5,9 @@
  - 文件全选、全部取消
  - 备份暂停、继续、取消
   
-![](ui\1.png)
+![](https://github.com/link9c/media_backup/blob/master/ui/1.png)
 
-![](ui\2.png)
+![](https://github.com/link9c/media_backup/blob/master/ui/2.png)
 
 todo: 
 1. 文件类别筛选
